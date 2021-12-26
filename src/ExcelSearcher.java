@@ -2,6 +2,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;  
+import java.util.*;
 import org.apache.poi.xssf.*;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -13,7 +14,7 @@ public class ExcelSearcher {
     //Clasa asa o sa foloseasca fie un singleton nu o sa existe mai mult decat o instanta a ei 
     private ExcelSearcher()
     {
-        System.out.println("ExcelSearcher Created");
+        System.out.println("ExcelSearcher Created all packages imported");
     }
 
     public static ExcelSearcher Searcher()
@@ -35,31 +36,41 @@ public class ExcelSearcher {
         }
     }
 
-    public void load()
+    public ArrayList<ArrayList<String>> loadCellContent()
     {
-        
+        ArrayList<ArrayList<String>> cells = new ArrayList<>();
         try
         {
-             
             this.workbook = new XSSFWorkbook(this.fileInputStream);  
             //creating a Sheet object to retrieve the object  
         }
         catch(IOException e)
         {
             System.out.println("Cannto create a sheet object with file : " + this.fileName);
-            return;
+            
         }
-        XSSFSheet sheet =  this.workbook.getSheetAt(0);  
-        //evaluating cell type   
+        XSSFSheet sheet =  this.workbook.getSheetAt(0);   
         
         for(Row row: sheet)     //iteration over row using for each loop  
         {  
-            for(Cell cell: row)    //iteration over cell using for each loop  
-            {  
-                System.out.print(cell.toString() + "\t") ; /// temporar numai pt testare da print la fiecare celula 
-            }  
-            System.out.println();  
+            //Fiecare rand in parte constituie o restanta asa ca o sa initializam si o sa adaugam in lista cu restante 
+            //Restanele initializate in loop-ul asta
+
+            //Tabel bidimensional de restante fiecare celula
+            //Stocata ca un string
+            ArrayList<String> stringRow = new ArrayList<>();
+            for(Cell cell : row)
+            {
+                //System.out.print(cell.toString() + "\t\t");
+                stringRow.add(cell.toString());
+            }
+            //System.out.println();
+            cells.add(stringRow);
+
+            
         }
+
+        return cells;
     }
     
 
@@ -70,3 +81,5 @@ public class ExcelSearcher {
     private XSSFWorkbook workbook;
     private static ExcelSearcher instance = new ExcelSearcher();
 }
+
+

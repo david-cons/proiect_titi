@@ -4,7 +4,9 @@
 public class EmailSender {
     //singleton
     public EmailSender()
-    {}
+    {
+        System.out.println("EmailSender created all packages imported");
+    }
 
     public static EmailSender Sender()
     {
@@ -29,9 +31,17 @@ public class EmailSender {
     {
         //auxiliary emails
     }
+
+    public void sendEmail(String From, String To, String emailContent)
+    {
+        //Mai usor decat sa manageuesti state
+        To(To);
+        From(From);
+        sendEmail(emailContent);
+    }
     public void sendEmail()
     {
-        //default email
+        sendEmail(this.defaultString);
 
     }
 
