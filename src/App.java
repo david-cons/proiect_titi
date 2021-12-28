@@ -21,10 +21,12 @@ public class App {
 
 
 
-        for(String email : emailSumaPersonala(restante))
-        {
-            System.out.println(email + "\n--------------------");
-        }
+        //TODO Lista cu emailuri pe persoana
+
+        //TODO Transformare intr-un dictionar "nume":"email"
+
+        //TODO editeaza determinaRestantele intr-o alta functie care creeaza emailuri si cauta dinamic in 
+        //dictionar in functie de numele persoanei din restanta 
 
         
 
