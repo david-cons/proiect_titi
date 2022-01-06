@@ -76,12 +76,20 @@ public class Email {
         //properties.setProperty("mail.user", user);
         //properties.setProperty("mail.password", password);
         
-        properties.put("mail.smtp.auth", "true");
-        properties.put("mail.smtp.ssl.enable", "true");
+        //.put("mail.smtp.auth", "true");
+        //properties.put("mail.smtp.ssl.enable", "true");
+       // properties.put("mail.smtp.host", "smtp.gmail.com");
+        //properties.put("mail.smtp.port", "587");
+        //properties.put("mail.smtp.starttls.enable", "true");
+        //properties.put("mail.smtp.ssl.trust", "smtp.gmail.com");
+
         properties.put("mail.smtp.host", "smtp.gmail.com");
-        properties.put("mail.smtp.port", "587");
-       // properties.put("mail.smtp.starttls.enable", "true");
-        properties.put("mail.smtp.ssl.trust", "smtp.gmail.com");
+        properties.put("mail.smtp.port", "465");
+        properties.put("mail.smtp.auth", "true");
+        properties.put("mail.smtp.socketFactory.port", "465");
+        properties.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");            
+        properties.put("mail.smtp.ssl.protocols", "TLSv1.2");
+
         
         Authenticator auth = new Authenticator() {
             protected PasswordAuthentication getPasswordAuthentication() {  
