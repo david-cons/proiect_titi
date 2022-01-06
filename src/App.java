@@ -4,6 +4,8 @@ import java.math.*;
 public class App {
     
     public static void main(String[] args) {
+        
+        /** 
         //initialize searcher
 
         ExcelSearcher searcher = ExcelSearcher.Searcher();
@@ -28,6 +30,17 @@ public class App {
         //TODO editeaza determinaRestantele intr-o alta functie care creeaza emailuri si cauta dinamic in 
         //dictionar in functie de numele persoanei din restanta 
 
+        */
+
+        Email.login("testexcelbottiti@gmail.com", "parola1234;");
+        Email email = new Email();
+        email.From = "testexcelbottiti@gmail.com";
+        email.To = "matei.mitran10@gmail.com";
+        email.content = "Hello World!";
+        email.subject = "Hello World!";
+       // Map<String, Email> dic = new HashMap<String,Email>();
+
+        Email.send(email);
         
 
     }

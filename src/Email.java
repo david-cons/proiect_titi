@@ -1,57 +1,109 @@
-//N am downloadat inca bibliotecile pentru 
-//A trimite mailuri 
+import java.util.*;
+import javax.mail.*;
+import javax.mail.internet.*;
+import javax.activation.*;
 
 public class Email {
-    //singleton
-    public Email(String From, String To)
+    
+
+    public Email(String From, String To, String content, String subject)
     {
         this.From = From;
         this.To = To;
+        this.content = content;
+        this.subject = subject;
     }
 
-    public Email(String From, String To, String content)
+    public Email()
     {
-        this.From = From;
-        this.To = To;
+        //Do nothing 
+        //Creat empty email manually reconfigurable
     }
 
-    public void setFrom(String From)
+    public String toString()
     {
-        this.From = From;
+        return  "From : " + this.From +
+                "To : " + this.To+
+                "\n" + this.subject+
+                "\n\n" + this.content;
     }
-    public void setTo(String To)
+
+    public static void send(Email email) throws IllegalStateException
     {
-        this.To = To;
+
+        if(loggedIn == false)
+        {
+            throw new IllegalStateException("the host of this device is not logged in");
+        }
+
+        if(email.content.isEmpty() || email.content == null)
+        {
+            throw new IllegalStateException("the content of the email cannot be empty or null");
+        }
+
+        if(email.subject == null)
+        {
+            throw new IllegalStateException("the subject of the email cannot be null");
+        }
+
+        
+
+        try
+        {
+            MimeMessage message = new MimeMessage(Email.session);
+
+            message.setFrom(new InternetAddress(email.From));
+            message.addRecipient(Message.RecipientType.TO, new InternetAddress(email.To));
+
+            message.setSubject(email.subject);
+            message.setText(email.content);
+
+            Transport.send(message);
+            System.out.println("----------"+ email.toString() + "\n\n Sent");
+
+        } catch (MessagingException mex)
+        {
+            mex.printStackTrace();
+        }
+
+
+        //continue
     }
 
-    public String getFrom()
+    public static void login(String user, String password) 
     {
-        return this.From;
+        properties = System.getProperties();
+        //properties.setProperty("mail.user", user);
+        //properties.setProperty("mail.password", password);
+        
+        properties.put("mail.smtp.auth", "true");
+        properties.put("mail.smtp.ssl.enable", "true");
+        properties.put("mail.smtp.host", "smtp.gmail.com");
+        properties.put("mail.smtp.port", "587");
+       // properties.put("mail.smtp.starttls.enable", "true");
+        properties.put("mail.smtp.ssl.trust", "smtp.gmail.com");
+        
+        Authenticator auth = new Authenticator() {
+            protected PasswordAuthentication getPasswordAuthentication() {  
+                return new PasswordAuthentication(user,password);  
+          }
+        };
+        session =  Session.getInstance(properties,auth); 
+        loggedIn = true;
     }
-
-    public String getTo()
-    {
-        return this.To;
-    }
-
-    public void send(String emailContent)
-    {
-        this.content = emailContent;
-    }
-
-
-    public void send()
-    {
-        send(content);
-    }
-
-
+    
 
     //state
-    private String From;
-    private String To;
-    private String content;
+    public String From = "";
+    public String To = "";
+    public String content = "";
+    public String subject = "";
 
+    private static String host = "localhost";
+    private static Properties properties;
+    private static Session session;
+    private static boolean loggedIn = false;
+    //private static Transport transport;
     //Functiile care o sa tina cont de trimis emailuri concret vor fi statice 
     //Chestiile low level vor fi statice
 
