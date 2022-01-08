@@ -21,7 +21,7 @@ public class Restanta { //record class
 
     public String toString()
     {
-        return nr_iesire + " " + cod + " " + denumire + " " + data + " " + neachitat;
+        return "Factura seria " + nr_iesire+ " din " + data + " în valoare de "+ neachitat;
     }
 
     public void show()
