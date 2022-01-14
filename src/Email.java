@@ -23,9 +23,9 @@ public class Email {
     public String toString()
     {
         return  "From : " + this.From +
-                "To : " + this.To+
+                " To : " + this.To+
                 "\n" + this.subject+
-                "\n\n" + this.content;
+                "\t id : " + this.id;
     }
 
     public static void send(Email email) throws IllegalStateException
@@ -59,7 +59,7 @@ public class Email {
             message.setText(email.content);
 
             Transport.send(message);
-            System.out.println("----------"+ email.toString() + "\n\n Sent");
+            System.out.println("----------"+ email.toString() + "\n\n Sent\n\n");
 
         } catch (MessagingException mex)
         {
@@ -104,8 +104,11 @@ public class Email {
     //state
     public String From = "";
     public String To = "";
+    public String nume = "";
     public String content = "";
+    //public String scrisoare = "";
     public String subject = "";
+    public String id = "";
 
     private static String host = "localhost";
     private static Properties properties;

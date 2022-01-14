@@ -1,17 +1,29 @@
 import java.util.*;
 import java.math.*;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+
 
 public class App {
+
+
+    //------------------main-------------------------------
+
     
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException, InterruptedException {
         
+
+        //-------------------------chestii care pot fi editate------------------
+        final boolean ScrieTextFile = true;
+        final boolean TrimiteEmailuri = true;
        
         //initialize searcher
 
         ExcelSearcher searcher = ExcelSearcher.Searcher();
 
         //set file
-        searcher.setFile("./data/RESTANTE_LA_30_11_2021_PNETRU_PENALITATI.xlsx");
+        searcher.setFile("./data/RESTANTE_LA_30_11_2021_PNETRU_PENALITATI.xlsx");//lista restante (coloanele sa ramana aceleasi). CAN BE EDITED
 
         //Ia data din tabel data raw 
         ArrayList<ArrayList<String>> tabel = searcher.loadCellContent();
@@ -24,27 +36,120 @@ public class App {
 
 
         //Lista cu emailuri pe persoana
-        /*searcher.setFile("email_db");
+        searcher.setFile("./data/users_2.xlsx");//lista emailuri CAN BE EDITED
+
+
         ArrayList<ArrayList<String>> baza_date_emailuri = searcher.loadCellContent();
 
-        //Transformare intr-un dictionar "nume":"email"
-        Map<String, String> map_emailuri = new HashMap<String, String>();
-        for(ArrayList<String> array : baza_date_emailuri)
-        {
-            map_emailuri.put(array.get(0),array.get(1));
-        }*/
+        
 
 
+        //----------------------de aici chestii nu mai pot fi editate ----------------------------
+
+        //Transformare intr-un dictionar "cod":"email"
+        HashMap<String, String> map_emailuri = new HashMap<String, String>();
+        int i = 1;
 
         //editeaza emailsumapersonala intr-o alta functie care creeaza emailuri si cauta dinamic in 
-        //dictionar in functie de numele persoanei din restanta 
-        ArrayList<Email> emailuri = emailCreator(restante, new HashMap<>());
+        //dictionar in functie de codul persoanei din restanta 
+        for(ArrayList<String> array : baza_date_emailuri)
+        {
+            i++;
+            try
+            {
+                map_emailuri.put(Integer.toString((int)Double.parseDouble(array.get(3))) , array.get(1));
+            }
+            catch(Exception e)
+            {
+                System.out.println("column " + i + " could not be added in the email dictionary");
+                continue;
+            }
+        }
 
 
+
+        //Compileaza emailurile si textul lor 
+        ArrayList<Email> emailuri = emailCreator(restante, map_emailuri);
+
+
+        //Scrie intr-un file noText toate codurile care nu au un email atasat lor 
+        BufferedWriter out = new BufferedWriter(new FileWriter("./noEmail.txt"));
+        for(Email email : emailuri)
+            {
+                if(email.To == null)
+                {
+                    String text = email.nume + " " + email.id + "\n";
+
+                    out.write(text);
+                } 
+            }
+        out.close();
+        //--------------------------------------------------------------------
+
+        int suma = nonNullEmails(emailuri); // Calculeaza suma totala a emailurilor care trebuie trimise 
+
+        Email.login("noreplyeuro7@gmail.com","Euro7Seven!");
+            
         
-        
-
+        if(ScrieTextFile)
+        {
+            for(Email email : emailuri)
+            {
+                if(email.To == null)
+                {
+                    BufferedWriter fileEmailRestanta = new BufferedWriter(new FileWriter("./faraEmail/" + email.id + ".txt"));
+                    fileEmailRestanta.write(email.content);
+                    fileEmailRestanta.close();
+                }   
+            }
+            System.out.println("Toate scrisorile au fost printate");
     }
+        
+
+    if(TrimiteEmailuri)
+    {
+        int trimise = 0;
+        for(Email email : emailuri)
+        {
+            if(email.To != null)
+            {
+                try{
+                    Email.send(email);
+                    Thread.sleep(12 * 1000);
+                }
+                catch(Exception e)
+                {
+                    System.out.println(e);
+                    System.out.println(email.toString() + " could not be sent"); //Flag pentru email netrimis
+                    
+                }
+                finally{
+
+
+                    System.out.println((++trimise) + " " + suma);
+                }
+
+            }
+        }
+        System.out.println("Toate emailurile au fost trimisse");
+    }
+        
+    }
+
+//------------------main-------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     static ArrayList<Restanta> determinaRestantele(ArrayList<ArrayList<String>> tabel) //
     {
@@ -84,13 +189,17 @@ public class App {
 
         for(int i = 0; i < restante.size(); i++)
         {
-            if(!persoana_actuala.equals(restante.get(i).denumire)) // Se restateaza la state-ul initial doar daca persoana se schimba 
+            if((!persoana_actuala.equals(restante.get(i).denumire)) ) // Se restateaza la state-ul initial doar daca persoana se schimba 
             {
                 Email email = new Email();
                 email.content = Paste.paste(restante_persoana_actuala); //Metoda in clasa separata care se ocupa cu formatarea intregului mail
-                email.From = "titi";
+                email.From = "noreplyeuro7@gmail.com";
                 email.subject = "Somație de plată a facturii/facturilor aferente consumului de gaze naturale";
-                email.To = "";//db_mailuri.get(persoana_actuala);
+                String adresa = db_mailuri.get(restante.get(i-1).cod);
+                email.To = adresa ;//db_mailuri.get(persoana_actuala);
+                //System.out.println(restante.get(i).cod + " " + adresa);
+                email.nume = persoana_actuala;
+                email.id = restante.get(i-1).cod;
                 persoana_actuala = restante.get(i).denumire;
                 restante_persoana_actuala = new ArrayList<>();
                 emailuri.add(email);
@@ -102,22 +211,34 @@ public class App {
         //Nu uita de ultima persoana din lista 
         Email email = new Email();
         email.content = Paste.paste(restante_persoana_actuala); //Metoda in clasa separata care se ocupa cu formatarea intregului mail
-        email.From = "titi";
+        email.From = "noreplyeuro7@gmail.com";
         email.subject = "Somație de plată a facturii/facturilor aferente consumului de gaze naturale";
-        email.To = ""; //db_mailuri.get(persoana_actuala);
-        persoana_actuala = restante.get(restante.size()-1).denumire;
+        String adresa = db_mailuri.get(restante_persoana_actuala.get(0).cod);
+        email.To = adresa;
+        //System.out.println(restante.get(restante.size()-1).cod + " " + adresa);
+        email.nume = persoana_actuala;
+        email.id = restante_persoana_actuala.get(0).cod;
+        persoana_actuala = restante_persoana_actuala.get(0).denumire;
         restante_persoana_actuala = new ArrayList<>();
         emailuri.add(email);
 
-        for(Email i : emailuri)
-        {
-            System.out.println(i.toString() + "\n-----------------------");
-        }
-
-        return new ArrayList<Email>();
+        return emailuri;
 
         
     }
-    
+
+    static int nonNullEmails(ArrayList<Email> emailuri)
+    {
+        int result = 0;
+        for(Email email : emailuri)
+        {
+            if(email.To != null)
+            {
+                result++;
+            }
+        }
+
+        return result;
+    }
 
 }
