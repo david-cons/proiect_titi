@@ -17,13 +17,14 @@ public class App {
         //-------------------------chestii care pot fi editate------------------
         final boolean ScrieTextFile = true;
         final boolean TrimiteEmailuri = true;
+        final int seconds = 1000;
        
         //initialize searcher
 
         ExcelSearcher searcher = ExcelSearcher.Searcher();
 
         //set file
-        searcher.setFile("./data/RESTANTE_LA_30_11_2021_PNETRU_PENALITATI.xlsx");//lista restante (coloanele sa ramana aceleasi). CAN BE EDITED
+        searcher.setFile("./data/restante-11.02.2022_1.xlsx");//lista restante (coloanele sa ramana aceleasi). CAN BE EDITED
 
         //Ia data din tabel data raw 
         ArrayList<ArrayList<String>> tabel = searcher.loadCellContent();
@@ -67,9 +68,12 @@ public class App {
         }
 
 
+        ArrayList<Email> emailuri;
 
         //Compileaza emailurile si textul lor 
-        ArrayList<Email> emailuri = emailCreator(restante, map_emailuri);
+         emailuri = emailCreator(restante, map_emailuri);
+       
+    
 
 
         //Scrie intr-un file noText toate codurile care nu au un email atasat lor 
@@ -86,9 +90,9 @@ public class App {
         out.close();
         //--------------------------------------------------------------------
 
-        int suma = nonNullEmails(emailuri); // Calculeaza suma totala a emailurilor care trebuie trimise 
+        int total = nonNullEmails(emailuri); // Calculeaza suma totala a emailurilor care trebuie trimise 
 
-        Email.login("noreplyeuro7@gmail.com","Euro7Seven!");
+        
             
         
         if(ScrieTextFile)
@@ -97,8 +101,8 @@ public class App {
             {
                 if(email.To == null)
                 {
-                    BufferedWriter fileEmailRestanta = new BufferedWriter(new FileWriter("./faraEmail/" + email.id + ".txt"));
-                    fileEmailRestanta.write(email.content);
+                    BufferedWriter fileEmailRestanta = new BufferedWriter(new FileWriter("./faraEmail/" + email.id + " "+ email.nume + ".txt"));
+                    fileEmailRestanta.write(email.scrisoare);
                     fileEmailRestanta.close();
                 }   
             }
@@ -108,6 +112,18 @@ public class App {
 
     if(TrimiteEmailuri)
     {
+        
+        for(int trimise = 0; trimise < emailuri.size(); trimise++)
+        {
+            if(emailuri.get(trimise).To != null)
+            {
+                BufferedWriter fileEmailRestanta = new BufferedWriter(new FileWriter("./cuEmail/" + emailuri.get(trimise).id +"_"+emailuri.get(trimise).To+".txt"));
+                fileEmailRestanta.write("email: "+emailuri.get(trimise).To +"\n\n"+emailuri.get(trimise).scrisoare);
+                fileEmailRestanta.close();
+                System.out.println("Wrote " +trimise+ " out of "+ total);
+            }
+        }
+        /**Email.login("botnoreplyeuro7@gmail.com","Euro7Seven!");
         int trimise = 0;
         for(Email email : emailuri)
         {
@@ -115,7 +131,8 @@ public class App {
             {
                 try{
                     Email.send(email);
-                    Thread.sleep(12 * 1000);
+                    Thread.sleep(25 * seconds); // schimba time-ul pt sleep 
+
                 }
                 catch(Exception e)
                 {
@@ -126,12 +143,14 @@ public class App {
                 finally{
 
 
-                    System.out.println((++trimise) + " " + suma);
+                    System.out.println((++trimise) + " " + total);
                 }
 
             }
         }
-        System.out.println("Toate emailurile au fost trimisse");
+        System.out.println("Toate emailurile au fost trimise");**/ //temporar oprit 
+
+        
     }
         
     }
@@ -156,23 +175,28 @@ public class App {
 
         ArrayList<Restanta> restante = new ArrayList<>();
         
-
+        int i  = 0;
         for(ArrayList<String> stringuri : tabel)
         {
-
+            i++;
             if(stringuri.get(0).isEmpty() || stringuri.get(0).equals("nr_iesire")
                 || stringuri.get(0).equals("TOTAL RESTANTE LA 30 11 2021")) //in caz ca randul nu este un rand tipic de data
             {
                 continue;
             }
 
-            restante.add(new Restanta(
-                stringuri.get(0),
-                stringuri.get(1),
-                stringuri.get(2),
-                stringuri.get(3),
-                stringuri.get(4)
-            ));
+            try{
+                restante.add(new Restanta(
+                    stringuri.get(0),
+                    stringuri.get(1),
+                    stringuri.get(2),
+                    stringuri.get(3),
+                    stringuri.get(4)
+                ));
+            }catch(Exception e)
+            {
+                System.out.println(i + "nu a putut fi adaugat in lista de restante\n"+e.toString());
+            }
             
         }
         return restante;
@@ -191,9 +215,11 @@ public class App {
         {
             if((!persoana_actuala.equals(restante.get(i).denumire)) ) // Se restateaza la state-ul initial doar daca persoana se schimba 
             {
+                
                 Email email = new Email();
                 email.content = Paste.paste(restante_persoana_actuala); //Metoda in clasa separata care se ocupa cu formatarea intregului mail
-                email.From = "noreplyeuro7@gmail.com";
+                email.scrisoare = Paste.pasteScrisoare(restante_persoana_actuala);
+                email.From = "botnoreplyeuro7@gmail.com";
                 email.subject = "Somație de plată a facturii/facturilor aferente consumului de gaze naturale";
                 String adresa = db_mailuri.get(restante.get(i-1).cod);
                 email.To = adresa ;//db_mailuri.get(persoana_actuala);
@@ -211,7 +237,8 @@ public class App {
         //Nu uita de ultima persoana din lista 
         Email email = new Email();
         email.content = Paste.paste(restante_persoana_actuala); //Metoda in clasa separata care se ocupa cu formatarea intregului mail
-        email.From = "noreplyeuro7@gmail.com";
+        email.scrisoare = Paste.pasteScrisoare(restante_persoana_actuala);
+        email.From = "botnoreplyeuro7@gmail.com";
         email.subject = "Somație de plată a facturii/facturilor aferente consumului de gaze naturale";
         String adresa = db_mailuri.get(restante_persoana_actuala.get(0).cod);
         email.To = adresa;

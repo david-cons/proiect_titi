@@ -24,7 +24,6 @@ public class Email {
     {
         return  "From : " + this.From +
                 " To : " + this.To+
-                "\n" + this.subject+
                 "\t id : " + this.id;
     }
 
@@ -106,7 +105,7 @@ public class Email {
     public String To = "";
     public String nume = "";
     public String content = "";
-    //public String scrisoare = "";
+    public String scrisoare = "";
     public String subject = "";
     public String id = "";
 
